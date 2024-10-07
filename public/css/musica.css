@@ -1,0 +1,82 @@
+@import "./config.css";
+
+#main{
+    width: 100%;
+    
+}
+#mediaContainer{
+    margin-top: 60px;
+    margin-bottom: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+#musicaContainer{
+    width: 90%;
+    margin-left: 20px;
+}
+#musicaHeader{
+    display: flex;
+    flex-direction: column;
+}
+#titulo{
+    font-size: var(--textoGrande);
+    font-weight: bold;
+    text-transform: capitalize;
+}
+#autor{
+    position: relative;
+    top: -0.2rem;
+    color: var(--textoCinza);
+    text-transform: capitalize;
+}
+#solistas{
+    color: var(--textoCinza);
+    margin-top: 0rem;
+    text-transform: capitalize;
+}
+#musicaContent{
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    /* row-gap: 1rem; */
+}
+.paragrafo{
+    margin: 1rem 0;
+    font-size: var(--textoMedio);
+    line-height: 2rem;
+}
+.quemQueVaiCantar{
+    display: flex;
+    font-size: var(--textoMedio);
+    text-transform: capitalize;
+    color: var(--textoCinza);
+    margin-bottom: -1rem;
+}
+
+#adminSoloButtonContainer{
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: row;
+    overflow-x: scroll;
+    width: 100%;
+    
+}
+.SoloButton{
+    background-color: var(--verdeEscuro);
+    color: var(--textoBranco);
+    padding: 10px 25px;
+    border: 1px solid black;
+    cursor: pointer;
+
+}
+
+@media (min-width: 1024px) {
+    #adminSoloButtonContainer {
+        overflow-x: hidden;
+       
+    }
+}   

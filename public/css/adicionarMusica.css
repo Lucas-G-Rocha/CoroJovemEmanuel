@@ -1,0 +1,58 @@
+@import url('config.css');
+
+#main{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+#form{
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 10px;
+    margin-top: 40px;
+}
+.inputContainer{
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+}
+.label{
+    font-size: var(--textoMedio);
+    color: var(--textoPreto);
+}
+.input{
+    height: 32px;
+    padding: 5px 10px;
+}
+#letraDaMusica{
+    resize: horizontal;
+    height: 100px;
+    line-height: 1rem;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    padding: 5px 10px;
+    text-align: left;
+    
+}
+.input, #letraDaMusica{
+    outline: none;
+}
+
+#letraDaMusica:focus, .input:focus{
+    border-color: var(--verdeEscuro);
+    border-width: 1.8px;
+}
+#submit{
+    width: 135px;
+    height: 46px;
+    background-color: var(--verdeClaro);
+    border: none;
+    margin-top: 20px;
+}
+

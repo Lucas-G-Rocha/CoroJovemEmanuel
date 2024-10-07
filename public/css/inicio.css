@@ -1,0 +1,111 @@
+@import "./config.css";
+
+#main{
+    width: 100%;
+    
+}
+#admContainer{
+    margin-top: 50px;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    right: 0;
+    width: min-content;
+}
+#adm{
+    background-color: var(--verdeClaro);
+    padding: 15px 25px;
+    color: var(--corDoTexto);
+    text-decoration: none;
+    font-size: var(--textoMedio);
+    font-weight: bold;
+
+}
+#adminButtonsContainer{
+    display: flex;
+    flex-direction: row;
+    margin-top: 50px;
+    justify-content: space-around;
+}
+.admFunctionbtn{
+    padding: 10px 3px;
+    background-color: var(--verdeClaro);
+    border: 1px black solid;
+    cursor: pointer;
+}
+#hinosCantadosHoje{
+    margin-top: 40px;
+}
+#hinosCantadosHojeContainer, #todosOsHinosContainer{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 30px;
+    margin: 30px 0;
+}
+#todosOsHinos, #hinosCantadosHoje{
+    font-size: var(--textoGrande);
+    text-align: center;
+}
+
+.hinoContainer{
+    background-color: var(--verdeMeioEscuro);
+    display: flex;
+    flex-direction: column;
+    width: 333px;
+    /* transform: translateX(-50%); */
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-align: center;
+
+}
+.removerHinoSection, .adicionarHinoSection, .editarBtn{
+    background-color: var(--verdeClaro);
+    border: 1px black solid;
+    padding: 5px 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+.editarBtn{
+    float: right;
+}
+.header-hino{
+
+}
+.titulo{
+    font-size: var(--textoMedio);
+    color: var(--corDoTexto);
+    font-weight: bold;
+    text-transform: capitalize;
+}
+.autor{
+    font-size: var(--textoNormal);
+    position: relative;
+    top: -0.2rem;
+    text-transform: capitalize;
+
+}
+.solistas{
+    font-size: var(--textoNormal);
+    text-transform: capitalize;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.inicioHino{
+    font-weight: bold;
+}
+.inicioHinotxtContainer{
+    border-radius: 5px;
+    background-color: white;
+    padding: 10px 15px;
+
+}
+.linkParaMusica{
+    text-decoration: none;
+    color: var(--corDoTexto);
+    
+}
+
+
+

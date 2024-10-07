@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+
+    <link rel="stylesheet" href="../css/inicio.css">
+    <title>Início</title>
+</head>
+
+<body>
+    <header id="header">
+        <a href="/" id="inicio">Início</a>
+        <input type="search" id="search" placeholder="Digite o nome da Musica aqui">
+    </header>
+
+    <main id="main">
+        <div id="admContainer">
+            <a href="/login" id="adm">ADM</a>
+        </div>
+
+        <h1 id="hinosCantadosHoje">Hinos que serão cantado hoje</h1>
+        <div id="hinosCantadosHojeContainer">
+
+        </div>
+
+
+        <!--  Estrutura do hino na tela inicial / de pesquisa  -->
+        <h1 id="todosOsHinos">Todos os Hinos</h1>
+        <div id="todosOsHinosContainer"></div>
+        <!-- ---- -->
+
+
+    </main>
+
+    <script>
+        buscarMusica();
+        document.addEventListener("DOMContentLoaded", function () {
+            // criarMusicCard();
+
+            fetch('/api/verificarSessao')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.logado) {
+                        // Se o usuário estiver logado, exibir informações apropriadas
+
+                        document.getElementById('adm').style.display = 'none';
+                        document.getElementById('admContainer').style.display = 'none';
+                        // Ocultar link de login
+                        criarAdminFunctionBtn(); // Mostrar link de logout
+
+
+
+
+
+                    } else {
+                        // Se não estiver logado, exibir o link de login
+                        document.getElementById('adm').style.display = 'inline';
+                        document.getElementById('admContainer').style.display = 'block';
+                        apagarAdminFunctionBtn();
+                    }
+                })
+                .catch(error => console.error('Erro ao verificar a sessão:', error));
+        });
+
+
+        function criarAdminFunctionBtn() {
+
+            const adminButtonsContainer = document.createElement('div');
+            adminButtonsContainer.id = 'adminButtonsContainer';
+
+            const adicionarBtn = document.createElement('button');
+            adicionarBtn.id = 'adicionarBtn';
+            adicionarBtn.className = 'admFunctionbtn';
+            adicionarBtn.textContent = 'Adicionar Musica';
+            adicionarBtn.onclick = adicionar;
+            adminButtonsContainer.appendChild(adicionarBtn);
+
+            const removerBtn = document.createElement('button');
+            removerBtn.id = 'removerBtn';
+            removerBtn.className = 'admFunctionbtn';
+            removerBtn.textContent = 'Remover Musica';
+            removerBtn.onclick = deletar;
+            adminButtonsContainer.appendChild(removerBtn);
+
+            const deslogarBtn = document.createElement('button');
+            deslogarBtn.id = 'deslogarBtn';
+            deslogarBtn.className = 'admFunctionbtn';
+            deslogarBtn.textContent = 'Deslogar';
+            deslogarBtn.onclick = deslogar;
+
+            adminButtonsContainer.appendChild(deslogarBtn);
+
+            main.prepend(adminButtonsContainer);
+        }
+
+        function apagarAdminFunctionBtn() {
+            const adminButtonsContainer = document.getElementById('adminButtonsContainer');
+            if (adminButtonsContainer) {
+                adminButtonsContainer.remove();
+            }
+        }
+
+        function deslogar() {
+            window.location.href = '/api/logout';
+        }
+        function adicionar() {
+            window.location.href = '/adicionarMusica';
+        }
+        function deletar() {
+
+            // Solicitar o título da música para deletar
+            const titulo = prompt("Digite o título da música que deseja deletar:");
+
+            if (!titulo) {
+                alert("Operação cancelada ou título inválido.");
+                return;
+            }
+
+            // Pedir uma confirmação antes de prosseguir
+            const confirmar = confirm(`Tem certeza de que deseja deletar a música "${titulo}"?`);
+
+            if (confirmar) {
+                // Fazer uma solicitação DELETE para o servidor com o título da música
+                fetch(`/api/musicas/${encodeURIComponent(titulo)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        } else {
+                            throw new Error('Música não encontrada ou erro ao deletar.');
+                        }
+                    })
+                    .then(data => {
+                        alert(`Música "${data[0].titulo}" foi deletada com sucesso.`);
+                        window.location.reload();
+                        // Aqui você pode atualizar a interface para remover a música da lista
+                    })
+                    .catch(error => {
+                        alert(error.message);
+                    });
+            } else {
+                alert("Operação de exclusão cancelada.");
+            }
+        }
+
+
+        function buscarMusica() {
+            fetch(`/api/musicas`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao buscar música');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    
+                    data.forEach(musica => {
+                        criarMusicCard(musica); // Chama criarMusicCard para cada música
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    // Lidar com o erro (por exemplo, exibir uma mensagem de erro no front-end)
+                });
+        }
+        function criarMusicCard(data) {
+            const linkParaMusica = document.createElement('a');
+            linkParaMusica.href = `/musica/${data.titulo}`;
+            linkParaMusica.className = 'linkParaMusica';
+
+            // Criar o container do hino
+            const hinoContainer = document.createElement('div');
+            hinoContainer.className = 'hinoContainer';
+
+            // Criar o header do hino
+            const headerHino = document.createElement('div');
+            headerHino.className = 'header-hino';
+
+            const titulo = document.createElement('p');
+            titulo.className = 'titulo';
+            titulo.textContent = data.titulo;
+
+            const autor = document.createElement('p');
+            autor.className = 'autor';
+            autor.textContent = data.autor;
+
+            const solistas = document.createElement('p');
+            solistas.className = 'solistas';
+            const solistasText = Array.isArray(data.solistas) ? data.solistas.join(', ') : 'Nenhum';
+            solistas.textContent = `Solistas: ${solistasText}`;
+
+            // Adicionar título, autor e solistas ao header
+            headerHino.appendChild(titulo);
+            headerHino.appendChild(autor);
+            headerHino.appendChild(solistas);
+
+            // Criar o container do início do hino
+            const inicioHinoContainer = document.createElement('div');
+            inicioHinoContainer.className = 'inicioHinoContainer';
+
+            const inicioHino = document.createElement('p');
+            inicioHino.className = 'inicioHino';
+            inicioHino.textContent = 'Inicio do Hino';
+
+            const inicioHinotxtContainer = document.createElement('div');
+            inicioHinotxtContainer.className = 'inicioHinotxtContainer';
+
+            const inicioDoHino = document.createElement('p');
+            inicioDoHino.className = 'inicioDoHino';
+            inicioDoHino.textContent = getFirstParagraph(data.conteudo); // Ex.: 'Lorem, ipsum dolor sit amet...'
+
+            // Adicionar início do hino ao container
+            inicioHinotxtContainer.appendChild(inicioDoHino);
+            inicioHinoContainer.appendChild(inicioHino);
+            inicioHinoContainer.appendChild(inicioHinotxtContainer);
+
+            // Adicionar o header e o início do hino ao container do hino
+            hinoContainer.appendChild(headerHino);
+            hinoContainer.appendChild(inicioHinoContainer);
+
+            // Adicionar o container do hino ao link principal
+            linkParaMusica.appendChild(hinoContainer);
+
+
+            const todosOsHinosContainer = document.getElementById('todosOsHinosContainer');
+            const hinosCantadosHojeContainer = document.getElementById('hinosCantadosHojeContainer');
+
+            if (data.isSelected === 0) {
+                todosOsHinosContainer.appendChild(linkParaMusica);
+            } else if (data.isSelected === 1) {
+                hinosCantadosHojeContainer.appendChild(linkParaMusica);
+            }
+            const tituloMusica = data.titulo;
+            const isSelectedMusica = data.isSelected;
+            fetch('/api/verificarSessao')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.logado) {
+
+                        addRemoveHinoSection(tituloMusica, isSelectedMusica, linkParaMusica);
+                        criarEditarBtn(tituloMusica, hinoContainer);
+
+                    }
+                })
+                .catch(error => console.error('Erro ao verificar a sessão:', error));
+        }
+
+        function getFirstParagraph(conteudo) {
+            const paragrafos = conteudo.split('\r\n\r\n');
+            return paragrafos[0]; // Retorna o primeiro parágrafo
+        }
+
+        function addRemoveHinoSection(titulo, isSelected, linkParaMusica) {
+            // Remover qualquer botão existente
+            const existingAddButton = linkParaMusica.querySelector('.adicionarHinoSection');
+            const existingRemoveButton = linkParaMusica.querySelector('.removerHinoSection');
+            if (existingAddButton) existingAddButton.remove();
+            if (existingRemoveButton) existingRemoveButton.remove();
+
+            // Criar os botões de adicionar e remover
+            const adicionarHinoSection = document.createElement('button');
+            adicionarHinoSection.className = 'adicionarHinoSection';
+            adicionarHinoSection.textContent = 'Adicionar Hino'; // Texto do botão
+
+            const removerHinoSection = document.createElement('button');
+            removerHinoSection.className = 'removerHinoSection';
+            removerHinoSection.textContent = 'Remover Hino'; // Texto do botão
+
+            // Adicionar função para adicionar o hino
+            adicionarHinoSection.onclick = (event) => {
+                event.preventDefault(); // Impede o redirecionamento
+                atualizarIsSelected(titulo, 1); // Atualiza para isSelected = 1
+                hinosCantadosHojeContainer.appendChild(linkParaMusica);
+                // Trocar o botão de adicionar pelo de remover
+                adicionarHinoSection.remove();
+                linkParaMusica.prepend(removerHinoSection);
+            };
+
+            // Adicionar função para remover o hino
+            removerHinoSection.onclick = (event) => {
+                event.preventDefault(); // Impede o redirecionamento
+                atualizarIsSelected(titulo, 0); // Atualiza para isSelected = 0
+                todosOsHinosContainer.appendChild(linkParaMusica);
+                // Trocar o botão de remover pelo de adicionar
+                removerHinoSection.remove();
+                linkParaMusica.prepend(adicionarHinoSection);
+            };
+
+            // Adicionar o botão correto com base no estado isSelected
+            if (isSelected === 0) {
+                linkParaMusica.prepend(adicionarHinoSection); // Adiciona o botão de adicionar
+            } else {
+                linkParaMusica.prepend(removerHinoSection); // Adiciona o botão de remover
+            }
+        }
+
+
+        function atualizarIsSelected(titulo, isSelected) {
+            fetch(`/api/musicas/${encodeURIComponent(titulo)}/isSelected`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ isSelected })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao atualizar música');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                   
+                })
+                .catch(error => {
+                    console.error('Erro ao atualizar música:', error);
+                });
+        }
+
+        function criarEditarBtn(titulo, hinoContainer){
+            const editarBtn = document.createElement('button');
+            editarBtn.className = 'editarBtn';
+            editarBtn.textContent = 'Editar Musica';
+            editarBtn.onclick = (event) => {
+                event.preventDefault();
+                window.location.href = '/editarMusica/'+encodeURIComponent(titulo);
+            }
+            hinoContainer.parentNode.insertBefore(editarBtn, hinoContainer);
+
+        }
+
+
+
+
+    </script>
+<script src="../js/search.js"></script>
+
+</body>
+
+</html>

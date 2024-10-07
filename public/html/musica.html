@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+
+    <link rel="stylesheet" href="../css/musica.css">
+    <title>Início</title>
+</head>
+
+<body>
+    <header id="header">
+        <a href="/" id="inicio">Início</a>
+        <input type="search" id="search" placeholder="Digite o nome da Musica aqui">
+    </header>
+
+    <main id="main">
+
+        <div id="mediaContainer">
+            <div id="iframeContainer">
+                <iframe src="" title="YouTube video player" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen id="youtubeIframe"></iframe>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+
+        const titulo = window.location.pathname.split('/').pop();
+        console.log(buscarMusica(titulo));
+
+
+
+
+
+        function buscarMusica(titulo) {
+            fetch(`/api/musica/${titulo}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao buscar música');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Música encontrada:', data);
+                    DOMcreator(data);
+                    criarAdminSoloButton(data);
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    // Lidar com o erro (por exemplo, exibir uma mensagem de erro no front-end)
+                });
+        }
+
+
+
+
+        function DOMcreator(data) {
+            const musicaContainer = document.createElement('div');
+            musicaContainer.id = "musicaContainer";
+            main.appendChild(musicaContainer);
+
+            const youtubeIframe = document.getElementById('youtubeIframe');
+            const youtubeLink = data.youtubeLink;
+
+            // Regex que cobre diferentes tipos de links do YouTube
+            const videoIdMatch = youtubeLink.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+
+            if (videoIdMatch) {
+                const videoId = videoIdMatch[1];
+                youtubeIframe.src = `https://www.youtube.com/embed/${videoId}`;
+            } else {
+                console.error("ID do vídeo não encontrado no link fornecido.");
+            }
+
+
+            const musicaHeader = document.createElement('div');
+            musicaHeader.id = 'musicaHeader';
+            musicaContainer.appendChild(musicaHeader);
+
+            const titulo = document.createElement('h2');
+            titulo.id = 'titulo';
+            titulo.textContent = data.titulo;
+            musicaHeader.appendChild(titulo);
+
+            const autor = document.createElement('p');
+            autor.id = 'autor';
+            autor.textContent = data.autor;
+            musicaHeader.appendChild(autor);
+
+            const solistas = document.createElement('p');
+            solistas.id = 'solistas';
+            solistas.textContent = Array.isArray(data.solistas) ? data.solistas.join(', ') : data.solistas; // Verifica se é um array
+            musicaHeader.appendChild(solistas);
+
+            const musicaContent = document.createElement('div');
+            musicaContent.id = 'musicaContent';
+            musicaContainer.appendChild(musicaContent);
+
+            const conteudo = data.conteudo
+
+            const conteudoComQuebras = conteudo.replace(/\r\n/g, '<br>');
+            const paragrafos = conteudoComQuebras.split('<br><br>');
+            // Divide por \n\n
+            let index = 0;
+            paragrafos.forEach(paragrafo => {
+                const p = document.createElement('p');
+
+                // Verifica se o parágrafo começa com a chave usando match
+                // A nova chave será capturada pela nova expressão regular
+                const chave = paragrafo.match(/&lt;-&gt;#(.*?)&lt;-&gt;/);
+                console.log(chave);
+
+                if (chave) {
+                    // Extrai a chave e o conteúdo
+                    const chaveNome = chave[1]; // A chave capturada
+                    console.log(chaveNome);
+                    const conteudoMusica = paragrafo.replace(/&lt;-&gt;#.*?&lt;-&gt;/, '').trim(); // Remove a chave do parágrafo
+                    console.log(conteudoMusica);
+
+                    // Cria um novo elemento para a chave
+                    const chaveElement = document.createElement('div');
+                    chaveElement.className = 'quemQueVaiCantar'; // Adiciona a classe à chave
+                    chaveElement.textContent = chaveNome; // Define o texto da chave
+
+
+                    // Cria o parágrafo com o conteúdo da música
+                    const p = document.createElement('p');
+                    p.innerHTML = conteudoMusica; // Adiciona o conteúdo ao parágrafo
+                    p.className = 'paragrafo';
+
+                    index++;
+                    p.id = `paragrafo-${index}`;
+                    // Adiciona a chave e o parágrafo ao contêiner
+                    musicaContent.appendChild(chaveElement); // Adiciona a linha da chave
+                    musicaContent.appendChild(p); // Adiciona o parágrafo com o conteúdo
+                } else {
+                    // Se não for uma chave, apenas adiciona o parágrafo normal
+                    const p = document.createElement('p');
+                    p.innerHTML = paragrafo;
+                    p.className = 'paragrafo';
+                    index++;
+                    p.id = `paragrafo-${index}`;
+                    musicaContent.appendChild(p);
+                }
+
+                // Atualiza o ID do parágrafo se necessário
+
+            });
+        }
+
+        async function criarAdminSoloButton(data) {
+            console.log('Executou a função');
+            const logado = await verificarSessao(); // Aguarde a verificação da sessão
+            if (logado) {
+                const main = document.getElementById('main');
+
+                const adminSoloButtonContainer = document.createElement('div');
+                adminSoloButtonContainer.id = 'adminSoloButtonContainer';
+
+                const addTodos = document.createElement('button');
+                addTodos.className = 'SoloButton';
+                addTodos.textContent = 'Todos';
+                addTodos.onclick = (event) => {
+                    const chave = '&lt;-&gt;#Todos&lt;-&gt;';
+                    const tipo = 'Todos';
+                    const textoSelecionado = pegarInformacoesTextoSelecionado();
+                    if (textoSelecionado) {
+                        console.log(textoSelecionado);
+                        adicionarSolista(textoSelecionado, chave, data, tipo);
+                    } else {
+                        alert('é necessario selecionar o parágrafo antes de classifica-lo');
+                    }
+
+                }
+
+                const addMeninas = document.createElement('button');
+                addMeninas.className = 'SoloButton';
+                addMeninas.textContent = 'Meninas';
+                addMeninas.onclick = (event) => {
+                    const chave = '&lt;-&gt;#Meninas&lt;-&gt;';
+                    const tipo = 'Meninas';
+                    const textoSelecionado = pegarInformacoesTextoSelecionado();
+                    if (textoSelecionado) {
+                        console.log(textoSelecionado);
+                        adicionarSolista(textoSelecionado, chave, data, tipo);
+                    } else {
+                        alert('é necessario selecionar o parágrafo antes de classifica-lo');
+                    }
+
+                };
+
+                const addMeninos = document.createElement('button');
+                addMeninos.className = 'SoloButton';
+                addMeninos.textContent = 'Meninos';
+                addMeninos.onclick = (event) => {
+                    const chave = '&lt;-&gt;#Meninos&lt;-&gt;';
+                    const tipo = 'Meninos';
+                    const textoSelecionado = pegarInformacoesTextoSelecionado();
+                    if (textoSelecionado) {
+                        console.log(textoSelecionado);
+                        adicionarSolista(textoSelecionado, chave, data, tipo);
+                    } else {
+                        alert('é necessario selecionar o parágrafo antes de classifica-lo');
+                    }
+
+                }
+
+                const addSolo = document.createElement('button');
+                addSolo.className = 'SoloButton';
+                addSolo.textContent = 'Solo(s)';
+                addSolo.onclick = (event) => {
+                    const textoSelecionado = pegarInformacoesTextoSelecionado();
+                    // Solicita os nomes dos solistas, separados por vírgulas
+                    
+                    if(textoSelecionado){
+                    const solistasInput = prompt("Digite os nomes dos solistas, separados por vírgula:");
+
+                    
+                    // Verifica se o input não está vazio ou cancelado
+                    if (solistasInput) {
+                        adicionarSolistasArray(textoSelecionado,solistasInput, data);
+                    } else {
+                        alert("Nenhum nome foi fornecido.");
+                    }
+                }else{
+                    alert('é necessario selecionar o parágrafo antes de classifica-lo');
+                }
+
+                };
+
+                const mudarSolo = document.createElement('button');
+                mudarSolo.className = 'SoloButton';
+                mudarSolo.textContent = 'Mudar Solo(s)';
+                mudarSolo.onclick = (event) =>{
+                    const textoSelecionado = pegarInformacoesTextoSelecionado();
+                    
+                    if(textoSelecionado){
+                    const solistasInput = prompt("Digite os nomes dos solistas, separados por virgula");
+                    if(solistasInput){
+                        mudarSolistaArray(textoSelecionado, solistasInput, data);
+                    }
+                }else{
+                    alert('é necessario selecionar o parágrafo antes de classifica-lo');
+                }
+                }
+
+                const remover = document.createElement('button');
+                remover.className = 'SoloButton';
+                remover.textContent = 'Remover';
+                remover.onclick = (event) => {
+                    const textoSelecionado = pegarInformacoesTextoSelecionado();
+
+                    if (textoSelecionado) {
+                        console.log(textoSelecionado);
+                        removerSolista(textoSelecionado, data);
+                    } else {
+                        alert('É necessário selecionar o parágrafo antes de classifica-lo, mudá-lo ou remove-lo');
+                    }
+                };
+
+                adminSoloButtonContainer.appendChild(addTodos);
+                adminSoloButtonContainer.appendChild(addMeninas);
+                adminSoloButtonContainer.appendChild(addMeninos);
+                adminSoloButtonContainer.appendChild(addSolo);
+                adminSoloButtonContainer.appendChild(mudarSolo);
+                adminSoloButtonContainer.appendChild(remover);
+
+                main.appendChild(adminSoloButtonContainer);
+
+                console.log("Entrou no if");
+
+                ajustarPosicaoBotoes();
+
+                // Adiciona os eventos para ajustar a posição quando necessário
+                window.addEventListener('load', ajustarPosicaoBotoes);
+                window.addEventListener('scroll', ajustarPosicaoBotoes);
+            }
+        };
+
+
+        function ajustarPosicaoBotoes() {
+            const header = document.getElementById('header');
+            const adminSoloButtonContainer = document.getElementById('adminSoloButtonContainer');
+
+            // Obtém a altura do header
+            const alturaHeader = header.offsetHeight;
+
+            // Verifica se a posição do adminSoloButtonContainer está sobrepondo o header
+            if (window.scrollY < alturaHeader) {
+                adminSoloButtonContainer.style.top = `${alturaHeader}px`;
+            } else {
+                adminSoloButtonContainer.style.top = '0px';
+            }
+        }
+
+        async function verificarSessao() {
+            try {
+                const response = await fetch('/api/verificarSessao');
+                const data = await response.json();
+                return data.logado; // Retorna true ou false
+            } catch (error) {
+                console.error('Erro ao verificar a sessão:', error);
+                return false; // Em caso de erro, considere que não está logado
+            }
+        }
+
+        function adicionarSolista(textoSelecionado, novaChave, data, tipo) {
+            const conteudoOriginal = textoSelecionado.innerHTML; // Mantém o conteúdo original para referência
+            const regexChave = /&lt;-&gt;#(.*?)&lt;-&gt;/g;
+
+            // Adiciona a nova chave no início do parágrafo selecionado
+            const novoConteudo = novaChave + conteudoOriginal;
+            textoSelecionado.innerHTML = novoConteudo;
+
+            console.log('Conteúdo após adicionar a nova chave:', textoSelecionado.innerHTML);
+            console.log(textoSelecionado);
+            const allParagraphs = document.querySelectorAll('#musicaContent p');
+            const paragraphsArray = Array.from(allParagraphs);
+
+            let previousElement;
+            paragraphsArray.forEach(paragraph => {
+                previousElement = paragraph.previousElementSibling;
+                // Verifique se o elemento anterior existe e possui a classe 'x'
+                if (previousElement && previousElement.classList.contains('quemQueVaiCantar')) {
+                    let previousElementContent = previousElement.textContent;
+                    previousElement.remove();
+
+
+                    // Adicionar a chave no início do parágrafo
+                    // Defina a chave que deseja adicionar
+                    paragraph.innerHTML = `&lt;-&gt;#${previousElementContent}&lt;-&gt;${paragraph.innerHTML}`;
+                    console.log("previousElementContent: " + previousElementContent);
+                }
+
+                if (paragraph.id === textoSelecionado.id) {
+                    paragraph.innerhtml = novoConteudo;
+                    console.log(textoSelecionado);
+                    console.log(paragraph);
+                }
+            });
+
+            const NovoConteudo = paragraphsArray.map(par => par.innerHTML).join('\r\n\r\n');
+            console.log(NovoConteudo);
+
+            atualizarConteudo(NovoConteudo, data, tipo);
+        }
+
+
+
+
+        function adicionarSolistasArray(textoSelecionado, solistaInput, data) {
+            const solistasArray = solistaInput.split(',').map(nome => nome.trim());
+        
+            const novaChave = `&lt;-&gt;#${solistaInput}&lt;-&gt;`;
+            const novoConteudo = novaChave + textoSelecionado.innerHTML;
+            textoSelecionado.innerHTML = novoConteudo;
+            console.log('textoSelecionado pós chave' + textoSelecionado.textContent);
+            const allParagraphs = document.querySelectorAll('#musicaContent p');
+            const paragraphsArray = Array.from(allParagraphs);
+
+            let previousElement;
+            paragraphsArray.forEach(paragraph => {
+                previousElement = paragraph.previousElementSibling;
+                // Verifique se o elemento anterior existe e possui a classe 'x'
+                if (previousElement && previousElement.classList.contains('quemQueVaiCantar')) {
+                    let previousElementContent = previousElement.textContent;
+                    previousElement.remove();
+
+
+                    // Adicionar a chave no início do parágrafo
+                    // Defina a chave que deseja adicionar
+                    paragraph.innerHTML = `&lt;-&gt;#${previousElementContent}&lt;-&gt;${paragraph.innerHTML}`;
+                    console.log("previousElementContent: " + previousElementContent);
+                }
+
+                if (paragraph.id === textoSelecionado.id) {
+                    paragraph.innerhtml = novoConteudo;
+                    console.log(textoSelecionado);
+                    console.log(paragraph);
+                }
+            });
+
+            const NovoConteudo = paragraphsArray.map(par => par.innerHTML).join('\r\n\r\n');
+            console.log(NovoConteudo);
+
+            atualizarConteudo(NovoConteudo, data, solistasArray);
+        }
+
+        function mudarSolistaArray(textoSelecionado, solistaInput, data){
+
+            removerSolista(textoSelecionado, data);
+            adicionarSolistasArray(textoSelecionado, solistaInput, data);
+        }
+
+
+        function pegarInformacoesTextoSelecionado() {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0 || selection.toString().trim() === "") {
+
+                return; // Sai da função se não houver seleção
+            } else if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0); // Pega o primeiro range selecionado
+                const selectedNode = range.startContainer; // O nó onde a seleção começa
+
+                // Se o nó for um texto (nó de texto), então pegamos o nó pai para acessar as propriedades
+                const element = selectedNode.nodeType === Node.TEXT_NODE ? selectedNode.parentNode : selectedNode;
+
+                // Aqui você pode acessar o id, class e outras propriedades
+                // Texto selecionado
+                return element;
+
+            }
+
+        }
+        function atualizarConteudo(NovoConteudo, data, tipo) {
+            const titulo = data.titulo;
+            console.log('novo conteudo abaixo');
+            console.log(NovoConteudo);
+            fetch(`/api/musicas/${titulo}/solistas`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ NovoConteudo, tipo }) // Envia o conteúdo atualizado
+            })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.reload();
+
+                })
+                .catch(error => {
+                    console.error('Erro ao atualizar solistas:', error);
+                });
+        }
+
+        // Função para remover qualquer chave do texto selecionado
+        function removerSolista(textoSelecionado, data) {
+            console.log('Texto selecionado: ' + textoSelecionado);
+
+            // Define a expressão regular para a chave a ser removida
+            const regexChave = /&lt;-&gt;#(.*?)&lt;-&gt;/g; // Detecta chaves no formato &lt;-&gt;#nome&lt;-&gt;
+            // textoSelecionado.innerHTML = textoSelecionado.innerHTML.replace(regexChave, '').trim(); // Remove a chave e trim para eliminar espaços
+
+            console.log(textoSelecionado);
+            const allParagraphs = document.querySelectorAll('#musicaContent p');
+            const paragraphsArray = Array.from(allParagraphs);
+
+            let previousElement;
+            let previousElementContent2;
+            paragraphsArray.forEach(paragraph => {
+
+                previousElement = paragraph.previousElementSibling;
+                // Verifique se o elemento anterior existe e possui a classe 'x'
+                if (previousElement && previousElement.classList.contains('quemQueVaiCantar')) {
+                    let previousElementContent = previousElement.textContent;
+                    previousElement.remove();
+                    paragraph.innerHTML = `&lt;-&gt;#${previousElementContent}&lt;-&gt;${paragraph.innerHTML}`;
+                    if (paragraph.id === textoSelecionado.id) {
+
+
+                        // Adicionar a chave no início do parágrafo
+                        // Defina a chave que deseja adicionar
+                        console.log('antes de retirar' + paragraph.textContent);
+                        paragraph.innerHTML = paragraph.innerHTML.replace(/^&lt;-&gt;#.*?&lt;-&gt;/, '').trim();
+                        console.log('dps de retirar' + paragraph.textContent);
+                        console.log("previousElementContent: " + previousElementContent);
+                        previousElementContent2 = previousElementContent;
+                    }
+                } else if (paragraph.id === textoSelecionado.id) {
+                    alert("Tem nada pra remover");
+                }
+
+            });
+
+            const NovoConteudo = paragraphsArray.map(par => par.innerHTML).join('\r\n\r\n');
+            console.log(NovoConteudo);
+            const tipo = ['remove', previousElementContent2];
+            atualizarConteudo(NovoConteudo, data, tipo); // Atualiza o conteúdo no servidor
+        }
+
+
+
+    </script>
+
+    <script src="../js/search.js"></script>
+</body>
+
+</html>

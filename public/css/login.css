@@ -1,0 +1,74 @@
+@import "./config.css";
+
+body{
+    background-color: var(--corDaPaginaEscuro);
+}
+main{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+#login{
+    width: 90%;
+    min-width: 60%;
+    background-color: var(--verdeEscuro);
+    border-radius: 5px;
+    margin-top: 30%;
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--textoBranco);
+}
+#titulo{
+    font-size: 27px;
+    margin-bottom: 2rem;
+    font-weight: normal;
+}
+#form{
+    display: flex;
+    flex-direction: column;
+    row-gap: 1.5rem;
+}
+.inputContainer{
+    display: flex;
+    flex-direction: column;
+
+}
+.labelInput{
+    font-size: var(--textoMedio);
+}
+.input{
+    height: 32px;
+    text-align: center;
+    border: none;
+    width: 100%;
+}
+#submit{
+    width: 70%;
+    margin: 0 50%;
+    transform: translateX(-50%);
+    height: 32px;
+    background-color: var(--verdeClaro);
+    border: none;
+    cursor: pointer;
+}
+.passwordDiv{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+
+}
+#password{
+    padding-right: 50px;
+    padding-left: 50px;
+    overflow: hidden;
+}
+#iconePassword{
+    position: absolute;
+    width: 30px;
+    height: auto;
+    right: 50px;
+    cursor: pointer;
+    z-index: 5;
+}

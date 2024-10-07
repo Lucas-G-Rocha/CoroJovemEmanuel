@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+
+    <link rel="stylesheet" href="../css/login.css">
+    <title>Início</title>
+</head>
+
+<body>
+    <header id="header">
+        <a href="/" id="inicio">Início</a>
+        <input type="search" id="search" placeholder="Digite o nome da Musica aqui">
+    </header>
+
+    <main id="main">
+        <div id="login">
+            <h1 id="titulo">Entrar como Administrador</h1>
+            <form action="/api/login" method="post" id="form">
+                <div class="inputContainer">
+                    <label for="user" id="userLabel" class="labelInput">Usuário</label>
+                    <input type="text" id="user" class="input" name="usuario" required>
+                </div>
+                <div class="inputContainer">
+                    <label for="password" id="passwordLabel" class="labelInput">Senha</label>
+                    <div id="passwordDiv">
+                        <input type="password" id="password" class="input" name="senha" required>
+                        <img src="../img/oculto.png" id="iconePassword" alt="">
+                    </div>
+                </div>
+                <input type="submit" value="Entrar" id="submit" class="submitInput">
+            </form>
+        </div>
+
+    </main>
+
+    <script>
+        const iconePassword = document.getElementById('iconePassword');
+        const password = document.getElementById('password');
+
+        iconePassword.addEventListener('click', () => {
+            // Alternar o tipo do input entre "password" e "text"
+            if (password.type === 'password') {
+                password.type = 'text';
+                iconePassword.src = '../img/visivel.png'; // Mostrar o ícone de visível
+            } else {
+                password.type = 'password';
+                iconePassword.src = '../img/oculto.png'; // Mostrar o ícone de oculto
+            }
+        });
+
+    </script>
+
+<script src="../js/search.js"></script>
+</body>
+
+</html>
