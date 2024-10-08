@@ -4,21 +4,52 @@ const fs = require('fs');
 const path = require('path');
 const session = require('express-session');
 
+const { MongoClient } = require('mongodb');
+
+// URL de conexão para o MongoDB (ajuste para sua configuração)
+const url = 'mongodb://localhost:27017';
+const dbName = 'CoroJovemEmanuelDB';
+
 const app = express();
+
+
+let client;
+
+async function conectarAoBanco() {
+  if (!client) {
+    client = new MongoClient(url);
+    await client.connect();
+    console.log('Conectado ao MongoDB!');
+  }
+  return client.db(dbName);
+}
+
+
 
 
 // Middleware
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
 // Caminho do arquivo JSON
-const dataPath = path.join(__dirname, 'dados.json');
 app.use(express.urlencoded({ extended: true }));
 
 // Função para ler o arquivo JSON
-const readData = () => {
-    const data = fs.readFileSync(dataPath);
-    return JSON.parse(data);
+const readData = async () => {
+    const db = await conectarAoBanco();
+    const colecaoMusicas = db.collection('musicas');
+    
+    // Lê o primeiro documento que contém músicas e o admin
+    const documento = await colecaoMusicas.findOne({}); // Lê um único documento
+
+    // Se o documento existir, armazena os dados em uma variável
+    const data = {
+        musicas: documento ? documento.musicas : [], // Se o documento não existir, retorna um array vazio
+        admin: documento ? documento.admin : null // Se o documento não existir, retorna null
+    };
+    
+    return data; // Retorna a variável com os dados
 };
+  
 
 
 
@@ -32,9 +63,34 @@ app.use(session({
 
 
 // Função para escrever no arquivo JSON
-const writeData = (data) => {
-    fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
+const writeData = async (data) => {
+    const db = await conectarAoBanco();
+    
+    // Referência à coleção
+    const colecaoMusicas = db.collection('musicas');
+    
+    // Verifica se já existe um documento na coleção
+    const documentoExistente = await colecaoMusicas.findOne({});
+
+    if (documentoExistente) {
+        // Se já existe, atualiza apenas o campo "musicas"
+        await colecaoMusicas.updateOne(
+            {},
+            { $set: { musicas: data.musicas } }
+        );
+    } else {
+        // Se não existe, insere um novo documento com o campo "musicas"
+        const documentoParaInserir = {
+            musicas: data.musicas,
+            admin: data.admin // Supondo que data.admin já está no formato correto
+        };
+
+        await colecaoMusicas.insertOne(documentoParaInserir);
+    }
 };
+
+
+
 
 function isAuthenticated(req, res, next) {
     if (req.session.isAuthenticated) {
@@ -58,11 +114,11 @@ app.get('/musica/:titulo', (req, res) => {
 });
 
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { usuario, senha } = req.body;
     
     
-    const dados = readData();
+    const dados = await readData();
     
     if (!dados) {
         console.error('Falha ao ler os dados do arquivo.');
@@ -91,9 +147,9 @@ app.get('/editarMusica/:titulo', isAuthenticated, (req, res) =>{
 });
 
 
-app.get('/api/musica/:titulo', (req, res) => {
+app.get('/api/musica/:titulo', async (req, res) => {
     const { titulo } = req.params;
-    const data = readData();
+    const data = await readData();
     
     const index = data.musicas.findIndex(m => m.titulo === titulo);
     if (index !== -1) {
@@ -105,13 +161,13 @@ app.get('/api/musica/:titulo', (req, res) => {
 });
 
 // Rota para obter todas as músicas
-app.get('/api/musicas', (req, res) => {
-    const data = readData();
+app.get('/api/musicas', async (req, res) => {
+    const data = await readData();
     res.json(data.musicas);
 });
 
 // Rota para adicionar uma nova música
-app.post('/api/adicionarMusica', isAuthenticated, (req, res) => {
+app.post('/api/adicionarMusica', isAuthenticated,  async (req, res) => {
     // Extraindo os dados do formulário do req.body
     const { titulo, autor, youtubeLink, conteudo } = req.body;
 
@@ -126,13 +182,13 @@ app.post('/api/adicionarMusica', isAuthenticated, (req, res) => {
     };
 
     // Lendo os dados existentes
-    const data = readData();
+    const data = await readData();
 
     // Adicionando a nova música ao array de músicas
     data.musicas.push(newMusic);
 
     // Salvando os dados de volta ao arquivo JSON
-    writeData(data);
+    await writeData(data);
 
     // Respondendo ao cliente
     res.redirect('/musica/' + encodeURIComponent(newMusic.titulo)); // Retorna a nova música criada
@@ -140,11 +196,11 @@ app.post('/api/adicionarMusica', isAuthenticated, (req, res) => {
 
 
 // Rota para atualizar uma música
-app.post('/api/editarMusica/:titulo', isAuthenticated, (req, res) => {
+app.post('/api/editarMusica/:titulo', isAuthenticated, async (req, res) => {
     let { titulo } = req.params;
     titulo = titulo.toLowerCase(); // Convertendo o título do parâmetro para minúsculas
 
-    const data = readData();
+    const data = await readData();
     const index = data.musicas.findIndex(m => m.titulo === titulo);
 
     if (index !== -1) {
@@ -159,33 +215,33 @@ app.post('/api/editarMusica/:titulo', isAuthenticated, (req, res) => {
         };
 
         data.musicas[index] = updatedMusic; // Atualiza a música existente com os novos dados
-        writeData(data); // Salva as alterações no arquivo
+        await writeData(data); // Salva as alterações no arquivo
         res.redirect('/musica/' + encodeURIComponent(updatedMusic.titulo)); // Redireciona para a página da música editada
     } else {
         res.status(404).json({ message: 'Música não encontrada' });
     }
 });
 
-app.patch('/api/musicas/:titulo/isSelected', isAuthenticated, (req, res) => {
+app.patch('/api/musicas/:titulo/isSelected', isAuthenticated, async (req, res) => {
     const { titulo } = req.params;
     const { isSelected } = req.body; // Espera receber o novo valor de isSelected no corpo da requisição
-    const data = readData();
+    const data = await readData();
 
     const index = data.musicas.findIndex(m => m.titulo === titulo);
     if (index !== -1) {
         // Atualiza apenas o isSelected
         data.musicas[index].isSelected = isSelected;
-        writeData(data);
+        await writeData(data);
         res.json({ status: 'success', data: { titulo, isSelected } });
     } else {
         res.status(404).json({ status: 'error', message: 'Música não encontrada' });
     }
 });
 
-app.patch('/api/musicas/:titulo/solistas', isAuthenticated, (req, res) => {
+app.patch('/api/musicas/:titulo/solistas', isAuthenticated, async (req, res) => {
     const { titulo } = req.params;
     const { NovoConteudo, tipo} = req.body;
-    const data = readData();
+    const data = await readData();
     
     const musicaIndex = data.musicas.findIndex(m => m.titulo === titulo);
 
@@ -239,7 +295,7 @@ app.patch('/api/musicas/:titulo/solistas', isAuthenticated, (req, res) => {
             }
         }
     
-        writeData(data);
+        await writeData(data);
         res.json({ message: 'Conteúdo atualizado com sucesso.' });
     } else {
         res.status(404).json({ message: 'Música não encontrada' });
@@ -250,16 +306,16 @@ app.patch('/api/musicas/:titulo/solistas', isAuthenticated, (req, res) => {
 
 
 // Rota para deletar uma música
-app.delete('/api/musicas/:titulo', isAuthenticated, (req, res) => {
+app.delete('/api/musicas/:titulo', isAuthenticated, async (req, res) => {
     let { titulo } = req.params;
     titulo = titulo.toLowerCase(); // Convertendo o título do parâmetro para minúsculas
 
-    const data = readData();
+    const data = await readData();
     const index = data.musicas.findIndex(m => m.titulo === titulo);
 
     if (index !== -1) {
         const deletedMusic = data.musicas.splice(index, 1);
-        writeData(data);
+        await writeData(data);
         res.json(deletedMusic);
     } else {
         res.status(404).json({ message: 'Música não encontrada' });
