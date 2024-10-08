@@ -7,22 +7,21 @@ const session = require('express-session');
 const { MongoClient } = require('mongodb');
 
 // URL de conexão para o MongoDB (ajuste para sua configuração)
-const url = 'mongodb://localhost:27017';
-const dbName = 'CoroJovemEmanuelDB';
+const uri = "mongodb+srv://admin:oZWjjkCsYF3ld7HN@cluster0.gdt4c.mongodb.net/CoroJovemEmanuel?retryWrites=true&w=majority&appName=Cluster0";
+const dbName = 'CoroJovemEmanuel';
 
 const app = express();
-
-
 let client;
 
 async function conectarAoBanco() {
   if (!client) {
-    client = new MongoClient(url);
+    client = new MongoClient(uri); // Adicione opções para evitar avisos
     await client.connect();
     console.log('Conectado ao MongoDB!');
   }
   return client.db(dbName);
 }
+
 
 
 
