@@ -214,7 +214,7 @@
 
             const inicioDoHino = document.createElement('p');
             inicioDoHino.className = 'inicioDoHino';
-            inicioDoHino.textContent = getFirstParagraph(data.conteudo); // Ex.: 'Lorem, ipsum dolor sit amet...'
+            inicioDoHino.innerHTML = getFirstParagraph(data.conteudo).replace(/\r\n/g, '<br>'); // Ex.: 'Lorem, ipsum dolor sit amet...'
 
             // Adicionar início do hino ao container
             inicioHinotxtContainer.appendChild(inicioDoHino);
@@ -253,9 +253,14 @@
         }
 
         function getFirstParagraph(conteudo) {
-            const paragrafos = conteudo.split('\r\n\r\n');
-            return paragrafos[0]; // Retorna o primeiro parágrafo
-        }
+    const paragrafos = conteudo.split('\r\n\r\n'); // Divide o conteúdo em parágrafos
+    let primeiroParagrafo = paragrafos[0]; // Obtém o primeiro parágrafo
+    
+    // Remove a chave e o texto entre as chaves
+    primeiroParagrafo = primeiroParagrafo.replace(/&lt;-&gt;#(.*?)&lt;-&gt;/g, '').trim(); // Remove a chave e o texto
+    
+    return primeiroParagrafo; // Retorna o primeiro parágrafo sem a chave
+}
 
         function addRemoveHinoSection(titulo, isSelected, linkParaMusica) {
             // Remover qualquer botão existente

@@ -106,6 +106,11 @@
     color: var(--corDoTexto);
     
 }
+.inicioDoHino{
+    word-wrap: break-word; /* Quebra palavras longas que não cabem na largura do contêiner */
+    overflow-wrap: break-word; /* Para maior compatibilidade com navegadores modernos */
+    white-space: normal;
+}
 
 
 
