@@ -10,6 +10,8 @@ Este projeto está hospedado em um servidor gratuito da Render, que entra em hib
 
 Este foi meu **primeiro projeto em Node.js**, feito há cerca de um ano a um ano e meio, e como tal está cheio de erros, bugs, má organização e código confuso. Apesar disso, representa uma etapa muito importante no meu aprendizado. O projeto ainda **não está finalizado** e sua interface e funcionalidades ainda estão em fase de amadurecimento.
 
+Fiz um novo projeto chamado MusicBookers, é a evolução dessa ideia, com o conhecimento que obtive ao longo do tempo!
+Link: https://github.com/Lucas-G-Rocha/MusicBookers
 ---
 
 ## 📖 Sobre o Projeto
