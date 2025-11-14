@@ -1,12 +1,6 @@
 # Coro Jovem Emanuel 🎶
 
-[🔗 Acesse o projeto online](https://corojovememanuel.onrender.com)
-**Usuário:** `admin`
-**Senha:** `jesusebom`
-
 ⚠️ **Observação Importante**
-
-Este projeto está hospedado em um servidor gratuito da Render, que entra em hibernação quando não está em uso. Isso significa que ao acessar o link pela primeira vez, o servidor pode levar cerca de 1 minuto para "acordar" e exibir o site.
 
 Este foi meu **primeiro projeto em Node.js**, feito há cerca de um ano a um ano e meio, e como tal está cheio de erros, bugs, má organização e código confuso. Apesar disso, representa uma etapa muito importante no meu aprendizado. O projeto ainda **não está finalizado** e sua interface e funcionalidades ainda estão em fase de amadurecimento.
 
